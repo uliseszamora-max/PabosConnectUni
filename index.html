@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Connect</title>
+  <title>Connect con Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -10,7 +11,6 @@
       margin: 0;
       padding: 0;
     }
-
     header {
       background: #0077b6;
       color: white;
@@ -18,17 +18,6 @@
       text-align: center;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
-    header h1 {
-      font-size: 2.5em;
-      margin: 0;
-    }
-
-    header p {
-      font-size: 1.2em;
-      margin-top: 5px;
-    }
-
     .container {
       max-width: 700px;
       margin: 40px auto;
@@ -37,9 +26,7 @@
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-
-    input[type="text"],
-    textarea {
+    input, textarea {
       width: 100%;
       padding: 12px;
       margin-top: 10px;
@@ -48,11 +35,6 @@
       font-size: 1em;
       background-color: #f9f9f9;
     }
-
-    input[type="file"] {
-      margin-top: 10px;
-    }
-
     button {
       margin-top: 15px;
       padding: 12px 25px;
@@ -62,25 +44,16 @@
       border-radius: 8px;
       font-size: 1em;
       cursor: pointer;
-      transition: background 0.3s ease;
     }
-
-    button:hover {
-      background: #0096c7;
-    }
-
     .post {
       border-top: 1px solid #eee;
       padding: 20px 0;
     }
-
     .post img {
       max-width: 100%;
       border-radius: 10px;
       margin-top: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-
     .post strong {
       color: #0077b6;
       font-size: 1.1em;
@@ -101,14 +74,12 @@
   </div>
 
   <div class="container" id="forum-section" style="display:none;">
-    <div class="post-form">
-      <h2>Crear publicación</h2>
-      <form id="form">
-        <textarea id="mensaje" rows="3" placeholder="¿Qué estás pensando?" required></textarea>
-        <input type="file" id="imagen" accept="image/*">
-        <button type="submit">Publicar</button>
-      </form>
-    </div>
+    <h2>Crear publicación</h2>
+    <form id="form">
+      <textarea id="mensaje" rows="3" placeholder="¿Qué estás pensando?" required></textarea>
+      <input type="file" id="imagen" accept="image/*">
+      <button type="submit">Publicar</button>
+    </form>
 
     <div id="posts">
       <h2>Publicaciones recientes</h2>
@@ -116,6 +87,11 @@
   </div>
 
   <script>
+    // 🔑 Conexión a Supabase
+    const supabaseUrl = 'https://pn0jdukyo4rjosjtehwr.supabase.co';
+    const supabaseKey = 'eyJh...'; // ← Reemplaza esto con tu clave completa
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
     let currentUser = "";
 
     function login() {
@@ -125,6 +101,7 @@
       if (currentUser !== "") {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('forum-section').style.display = 'block';
+        cargarPosts();
       } else {
         alert("Por favor, ingresa tu nombre de usuario.");
       }
@@ -133,36 +110,66 @@
     const form = document.getElementById('form');
     const posts = document.getElementById('posts');
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
       const mensaje = document.getElementById('mensaje').value;
       const imagenInput = document.getElementById('imagen');
       const imagen = imagenInput.files[0];
 
-      const post = document.createElement('div');
-      post.className = 'post';
-
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        post.innerHTML = `<strong>${currentUser}</strong><p>${mensaje}</p>`;
-        if (imagen) {
-          const img = document.createElement('img');
-          img.src = event.target.result;
-          post.appendChild(img);
-        }
-        posts.prepend(post);
-        form.reset();
-      };
+      let imagenBase64 = null;
 
       if (imagen) {
+        const reader = new FileReader();
+        reader.onload = async function(event) {
+          imagenBase64 = event.target.result;
+          await guardarPost(mensaje, imagenBase64);
+        };
         reader.readAsDataURL(imagen);
       } else {
-        post.innerHTML = `<strong>${currentUser}</strong><p>${mensaje}</p>`;
-        posts.prepend(post);
-        form.reset();
+        await guardarPost(mensaje, null);
       }
+
+      form.reset();
     });
+
+    async function guardarPost(mensaje, imagenBase64) {
+      const { error } = await supabase
+        .from('posts')
+        .insert([{ usuario: currentUser, mensaje: mensaje, imagen: imagenBase64 }]);
+
+      if (error) {
+        console.error("Error al guardar:", error);
+        alert("Hubo un problema al publicar.");
+      } else {
+        cargarPosts();
+      }
+    }
+
+    async function cargarPosts() {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('id', { ascending: false });
+
+      if (error) {
+        console.error("Error al cargar:", error);
+        return;
+      }
+
+      posts.innerHTML = "<h2>Publicaciones recientes</h2>";
+      data.forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post';
+        div.innerHTML = `<strong>${post.usuario}</strong><p>${post.mensaje}</p>`;
+        if (post.imagen) {
+          const img = document.createElement('img');
+          img.src = post.imagen;
+          div.appendChild(img);
+        }
+        posts.appendChild(div);
+      });
+    }
   </script>
 </body>
 </html>
