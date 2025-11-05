@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Connect</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Connect</h1>
+    <p>Tu espacio para compartir ideas e imágenes</p>
+  </header>
+
+  <div class="container" id="login-section">
+    <h2>Iniciar sesión</h2>
+    <input type="text" id="username" placeholder="Nombre de usuario" required>
+    <button onclick="login()">Entrar</button>
+  </div>
+
+  <div class="container" id="forum-section" style="display:none;">
+    <div class="post-form">
+      <h2>Crear publicación</h2>
+      <form id="form">
+        <textarea id="mensaje" rows="3" placeholder="¿Qué estás pensando?" required></textarea>
+        <input type="file" id="imagen" accept="image/*">
+        <button type="submit">Publicar</button>
+      </form>
+    </div>
+
+    <div id="posts">
+      <h2>Publicaciones recientes</h2>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
