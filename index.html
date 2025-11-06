@@ -64,13 +64,13 @@
 
   <header>
     <h1>Connect</h1>
-    <p>Tu espacio para publicar sin censura</p>
+    <p>Tu espacio para compartir ideas e imágenes</p>
   </header>
 
   <div class="container" id="login-section">
     <h2>Iniciar sesión</h2>
     <input type="text" id="username" placeholder="Nombre de usuario" required>
-    <button onclick="login()">Entrar</button>
+    <button id="login-btn">Entrar</button>
   </div>
 
   <div class="container" id="forum-section" style="display:none;">
@@ -88,13 +88,13 @@
 
   <script>
     // 🔑 Conexión a Supabase
-    const supabaseUrl = 'https://pn0jdukyo4rjosjtehwr.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuYmp1ZGt5dWpvaXFzamhlaHhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNzc1NTYsImV4cCI6MjA3Nzk1MzU1Nn0.uUyNaDpzEtSJPJ_utOdOQLMS9bNEg0MtGjQip0vHXx4'; // ← Reemplaza esto con tu clave completa
+    const supabaseUrl = 'https://pnbjudkyujoiqsjhehxr.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuYmp1ZGt5dWpvaXFzamhlaHhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNzc1NTYsImV4cCI6MjA3Nzk1MzU1Nn0.uUyNaDpzEtSJPJ_utOdOQLMS9bNEg0MtGjQip0vHXx4'; // ← pega tu clave completa aquí
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     let currentUser = "";
 
-    function login() {
+    document.getElementById('login-btn').addEventListener('click', () => {
       const usernameInput = document.getElementById('username');
       currentUser = usernameInput.value.trim();
 
@@ -105,7 +105,7 @@
       } else {
         alert("Por favor, ingresa tu nombre de usuario.");
       }
-    }
+    });
 
     const form = document.getElementById('form');
     const posts = document.getElementById('posts');
@@ -116,6 +116,11 @@
       const mensaje = document.getElementById('mensaje').value;
       const imagenInput = document.getElementById('imagen');
       const imagen = imagenInput.files[0];
+
+      if (!mensaje.trim()) {
+        alert("El mensaje no puede estar vacío.");
+        return;
+      }
 
       let imagenBase64 = null;
 
